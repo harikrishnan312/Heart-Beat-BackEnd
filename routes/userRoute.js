@@ -44,9 +44,11 @@ userRoute.get('/matches',userAuth,userController.HandleMatches);
 
 userRoute.patch('/deleteMatch',userAuth,userController.HandleDeleteMatches);
 
-userRoute.get('/newsField',userAuth,userController.GetPosts)
+userRoute.get('/newsFeed',userAuth,userController.GetPosts)
 
-userRoute.post('/newsField',userAuth,upload.single('image'),userController.CreatePost)
+userRoute.post('/newsFeed',userAuth,upload.single('image'),userController.CreatePost);
+
+userRoute.patch('/newsFeed',userAuth,userController.HandleLikeCount);
 
 
 module.exports = userRoute;

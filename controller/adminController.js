@@ -7,6 +7,8 @@ const Admin = require('../model/adminModel')
 
 const User = require('../model/userModel')
 
+const NewsFeed = require('../model/newsFeedModel')
+
 
 const securePassword = require('../middleware/bcrypt')
 
@@ -85,12 +87,12 @@ const BlockUser = async (req, res) => {
             } else {
 
                 if (req.body.block) {
-                    const blocked = await User.findByIdAndUpdate(id, { $set: { isBlocked: true } },{new:true})
+                    const blocked = await User.findByIdAndUpdate(id, { $set: { isBlocked: true } }, { new: true })
                     if (blocked) {
                         res.json({ status: 'ok' })
                     }
                 } else {
-                    const unblocked = await User.findByIdAndUpdate(id, { $set: { isBlocked: false } },{new:true})
+                    const unblocked = await User.findByIdAndUpdate(id, { $set: { isBlocked: false } }, { new: true })
                     if (unblocked) {
                         res.json({ status: 'ok' })
                     }
@@ -102,9 +104,61 @@ const BlockUser = async (req, res) => {
     }
 }
 
+const GetPosts = async (req, res) => {
+    try {
+        if (req.admin) {
+            const posts = await NewsFeed.aggregate([
+                {
+                    $lookup: {
+                        from: "users",
+                        localField: "userId",
+                        foreignField: "_id",
+                        as: "user"
+                    }
+                },
+                {
+                    $project: {
+                        _id: 1,
+                        caption: 1,
+                        image: 1,
+                        likes: 1,
+                        "user.firstName": 1,
+                        "user.image": 1
+                    }
+                }, {
+                    $sort: { _id: -1 }
+                }
+            ])
+            if (posts) {
+                res.status(200).json({ status: 'ok', posts })
+            }
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ status: 'error', message: 'Internal server error' });
+    }
+}
+
+
+const DeletePost = async (req, res) => {
+    try {
+        if (req.admin) {
+            const {id} = req.body;
+            await NewsFeed.findByIdAndDelete({_id:id}).then(()=>{
+                res.status(200).json({status:'ok'})
+            })
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ status: 'error', message: 'Internal server error' });
+    }
+}
+
 module.exports = {
     RegisterAdmin,
     VerifyAdmin,
     AdminHome,
-    BlockUser
+    BlockUser,
+    GetPosts,
+    DeletePost
 }

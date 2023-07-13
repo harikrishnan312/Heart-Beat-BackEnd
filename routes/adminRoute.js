@@ -11,7 +11,11 @@ adminRoute.post('/login', adminController.VerifyAdmin)
 
 adminRoute.get('/home', adminAuth, adminController.AdminHome);
 
-adminRoute.patch('/home', adminAuth, adminController.BlockUser)
+adminRoute.patch('/home', adminAuth, adminController.BlockUser);
+
+adminRoute.get('/newsFeed',adminAuth,adminController.GetPosts);
+
+adminRoute.put('/newsFeed',adminAuth,adminController.DeletePost);
 
 
 module.exports = adminRoute;

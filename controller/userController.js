@@ -689,10 +689,62 @@ const CreatePost = async (req, res) => {
 const GetPosts = async (req, res) => {
     try {
         if (req.user) {
-            const posts =await NewsFeed.find();
+            const userMatched = [...req.user.matches,req.user._id]
+            const posts = await NewsFeed.aggregate([
+                {
+                    $lookup: {
+                        from: "users",
+                        localField: "userId",
+                        foreignField: "_id",
+                        as: "user"
+                    }
+                },
+                {
+                    $match:{
+                        userId:{
+                            $in:userMatched.map((id)=>id)
+                        }
+                    }
+
+                },
+                {
+                    $project: {
+                        _id: 1,
+                        caption: 1,
+                        image: 1,
+                        likes: 1,
+                        "user.firstName": 1,
+                        "user.image": 1
+                    }
+                }, {
+                    $sort: { _id: -1 }
+                }
+            ])
             if (posts) {
-                res.json({status:'ok',posts:posts})
+                res.json({ status: 'ok', posts: posts })
             }
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ status: 'error', message: 'Internal server error' });
+    }
+}
+
+const HandleLikeCount = async (req, res) => {
+    try {
+        if (req.user) {
+            const { id,likes } = req.body;
+if(likes){
+    await NewsFeed.updateOne({ _id: id }, { $inc: { likes: 1 } })
+    .then(() => {
+        res.status(200).json({ status: 'ok' })
+    })
+}  else{
+    await NewsFeed.updateOne({ _id: id }, { $inc: { likes: -1 } })
+    .then(() => {
+        res.status(200).json({ status: 'ok' })
+    })
+}        
         }
     } catch (error) {
         console.error(error);
@@ -719,5 +771,6 @@ module.exports = {
     HandleDeleteMatches,
     EditImage,
     CreatePost,
-    GetPosts
+    GetPosts,
+    HandleLikeCount
 }

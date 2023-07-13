@@ -1,8 +1,9 @@
 const mongoose = require('mongoose');
+const { ObjectId } = require("mongodb");
 const NewsFeed = mongoose.Schema({
 
     userId: {
-        type: String,
+        type: ObjectId,
         required: true
     },
     caption: {
@@ -11,7 +12,7 @@ const NewsFeed = mongoose.Schema({
     },
     likes: {
         type: Number,
-        default:0,
+        default: 0,
         required: true
     },
     image: {
