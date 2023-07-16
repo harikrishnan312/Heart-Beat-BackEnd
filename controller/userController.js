@@ -10,7 +10,11 @@ const moment = require('moment')
 
 const User = require('../model/userModel');
 
-const NewsFeed = require('../model/newsFeedModel')
+const NewsFeed = require('../model/newsFeedModel');
+
+const Chat = require('../model/chatModel');
+
+const Message = require('../model/messageModel')
 
 const securePassword = require('../middleware/bcrypt')
 
@@ -689,7 +693,7 @@ const CreatePost = async (req, res) => {
 const GetPosts = async (req, res) => {
     try {
         if (req.user) {
-            const userMatched = [...req.user.matches,req.user._id]
+            const userMatched = [...req.user.matches, req.user._id]
             const posts = await NewsFeed.aggregate([
                 {
                     $lookup: {
@@ -700,9 +704,9 @@ const GetPosts = async (req, res) => {
                     }
                 },
                 {
-                    $match:{
-                        userId:{
-                            $in:userMatched.map((id)=>id)
+                    $match: {
+                        userId: {
+                            $in: userMatched.map((id) => id)
                         }
                     }
 
@@ -733,24 +737,94 @@ const GetPosts = async (req, res) => {
 const HandleLikeCount = async (req, res) => {
     try {
         if (req.user) {
-            const { id,likes } = req.body;
-if(likes){
-    await NewsFeed.updateOne({ _id: id }, { $inc: { likes: 1 } })
-    .then(() => {
-        res.status(200).json({ status: 'ok' })
-    })
-}  else{
-    await NewsFeed.updateOne({ _id: id }, { $inc: { likes: -1 } })
-    .then(() => {
-        res.status(200).json({ status: 'ok' })
-    })
-}        
+            const { id, likes } = req.body;
+            if (likes) {
+                await NewsFeed.updateOne({ _id: id }, { $inc: { likes: 1 } })
+                    .then(() => {
+                        res.status(200).json({ status: 'ok' })
+                    })
+            } else {
+                await NewsFeed.updateOne({ _id: id }, { $inc: { likes: -1 } })
+                    .then(() => {
+                        res.status(200).json({ status: 'ok' })
+                    })
+            }
         }
     } catch (error) {
         console.error(error);
         res.status(500).json({ status: 'error', message: 'Internal server error' });
     }
 }
+
+const accessChat = async (req, res) => {
+    if (req.user) {
+
+        const { userId } = req.body;
+
+        if (!userId) {
+            console.log("UserId param not sent with request");
+            return res.sendStatus(400);
+        }
+
+        var isChat = await Chat.find({
+            isGroupChat: false,
+            $and: [
+                { users: { $elemMatch: { $eq: req.user._id } } },
+                { users: { $elemMatch: { $eq: userId } } },
+            ],
+        })
+            .populate("users", "-password")
+            .populate("latestMessage");
+
+        isChat = await User.populate(isChat, {
+            path: "latestMessage.sender",
+            select: "firstName image email",
+        });
+
+        if (isChat.length > 0) {
+            res.send(isChat[0]);
+        } else {
+            var chatData = {
+                chatName: "sender",
+                isGroupChat: false,
+                users: [req.user._id, userId],
+            };
+
+            try {
+                const createdChat = await Chat.create(chatData);
+                const FullChat = await Chat.findOne({ _id: createdChat._id }).populate(
+                    "users",
+                    "-password"
+                );
+                res.status(200).json(FullChat);
+            } catch (error) {
+                res.status(400);
+                throw new Error(error.message);
+            }
+        }
+    }
+};
+
+const fetchChats = async (req, res) => {
+    try {
+        Chat.find({ users: { $elemMatch: { $eq: req.user._id } } })
+            .populate("users", "-password")
+            .populate("groupAdmin", "-password")
+            .populate("latestMessage")
+            .sort({ updatedAt: -1 })
+            .then(async (results) => {
+                results = await User.populate(results, {
+                    path: "latestMessage.sender",
+                    select: "fisrtName image email",
+                });
+                res.status(200).send(results);
+            });
+    } catch (error) {
+        res.status(400);
+        throw new Error(error.message);
+    }
+};
+
 module.exports = {
     userRegister,
     otpVerify,
@@ -772,5 +846,7 @@ module.exports = {
     EditImage,
     CreatePost,
     GetPosts,
-    HandleLikeCount
+    HandleLikeCount,
+    accessChat,
+    fetchChats
 }

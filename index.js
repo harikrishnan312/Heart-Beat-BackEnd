@@ -20,7 +20,28 @@ app.use('/', userRoute)
 const adminRoute = require('./routes/adminRoute')
 app.use('/admin', adminRoute)
 
-app.listen(8000, () => {
+const server = app.listen(8000, () => {
   console.log(`Server is running on port 8000.`);
 });
 
+const io = require('socket.io')(server,{
+  pingTimeout:60000,
+  cors:{
+    origin:"http://localhost:5173"
+  }
+})
+
+io.on("connection",(socket)=>{
+  console.log("connected to socket.io");
+
+  socket.on('set up',(userData)=>{
+socket.join(userData);
+console.log(userData);
+socket.emit('connected');
+  });
+  
+  socket.on('join chat',(room)=>{
+    socket.join(room);
+    console.log('User joined Room :'+ room);
+  });
+});

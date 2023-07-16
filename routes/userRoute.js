@@ -50,5 +50,9 @@ userRoute.post('/newsFeed',userAuth,upload.single('image'),userController.Create
 
 userRoute.patch('/newsFeed',userAuth,userController.HandleLikeCount);
 
+userRoute.post('/message',userAuth,userController.accessChat);
+
+userRoute.get('/message',userAuth,userController.fetchChats)
+
 
 module.exports = userRoute;
