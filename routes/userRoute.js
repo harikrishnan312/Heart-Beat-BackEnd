@@ -52,7 +52,11 @@ userRoute.patch('/newsFeed',userAuth,userController.HandleLikeCount);
 
 userRoute.post('/message',userAuth,userController.accessChat);
 
-userRoute.get('/message',userAuth,userController.fetchChats)
+userRoute.get('/message',userAuth,userController.fetchChats);
+
+userRoute.get('/allMessage',userAuth,userController.AllMessage);
+
+userRoute.post('/sendMessage',userAuth,userController.SendMessage)
 
 
 module.exports = userRoute;
