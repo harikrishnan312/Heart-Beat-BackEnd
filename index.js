@@ -39,7 +39,13 @@ io.on("connection", (socket) => {
     socket.emit('connection');
   });
 
-  socket.on('join chat', (room) => {
+  socket.on('join chat', (room, oldRoom) => {
+    if (oldRoom) {
+      if (oldRoom.length > 0) {
+        socket.leave(oldRoom)
+        console.log('User leaved Room :' + oldRoom);
+      }
+    }
     socket.join(room);
     console.log('User joined Room :' + room);
   });
