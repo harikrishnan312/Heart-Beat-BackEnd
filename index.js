@@ -18,7 +18,6 @@ app.use(express.static(path.join(__dirname, "public")));
 const userRoute = require('./routes/userRoute')
 app.use('/', userRoute)
 const adminRoute = require('./routes/adminRoute');
-const { log } = require('console');
 app.use('/admin', adminRoute)
 
 const server = app.listen(8000, () => {
