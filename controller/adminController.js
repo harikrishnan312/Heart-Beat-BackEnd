@@ -12,7 +12,18 @@ const NewsFeed = require('../model/newsFeedModel')
 
 const securePassword = require('../middleware/bcrypt')
 
+function calculateAge(dob) {
+    const today = new Date();
+    const birthDate = new Date(dob);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
 
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+    }
+
+    return age;
+}
 
 const RegisterAdmin = async (req, res) => {
     try {
@@ -65,7 +76,15 @@ const AdminHome = async (req, res) => {
         if (req.admin) {
             const verified = req.query.verified;
             const users = await User.find({ isVerified: verified })
-            res.json({ status: 'ok', users })
+            if (users) {
+                 const updatedUsers = users.map((user) => {
+                    return {
+                        ...user,
+                        age: calculateAge(user.age),
+                    };
+                });
+                res.json({ status: 'ok', updatedUsers })
+            }
         } else {
             res.json({ status: 'unauthorised' })
         }
@@ -143,9 +162,9 @@ const GetPosts = async (req, res) => {
 const DeletePost = async (req, res) => {
     try {
         if (req.admin) {
-            const {id} = req.body;
-            await NewsFeed.findByIdAndDelete({_id:id}).then(()=>{
-                res.status(200).json({status:'ok'})
+            const { id } = req.body;
+            await NewsFeed.findByIdAndDelete({ _id: id }).then(() => {
+                res.status(200).json({ status: 'ok' })
             })
         }
     } catch (error) {
