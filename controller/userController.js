@@ -6,6 +6,7 @@ const jwt = require('jsonwebtoken')
 const axios = require('axios')
 const mongoose = require('mongoose');
 const moment = require('moment')
+const Razorpay = require('razorpay')
 
 
 const User = require('../model/userModel');
@@ -807,20 +808,20 @@ const accessChat = async (req, res) => {
 
 const fetchChats = async (req, res) => {
     try {
-        if(req.user){
+        if (req.user) {
 
             Chat.find({ users: { $elemMatch: { $eq: req.user._id } } })
-            .populate("users", "-password")
-            .populate("groupAdmin", "-password")
-            .populate("latestMessage")
-            .sort({ updatedAt: -1 })
-            .then(async (results) => {
-                results = await User.populate(results, {
-                    path: "latestMessage.sender",
-                    select: "fisrtName image email",
+                .populate("users", "-password")
+                .populate("groupAdmin", "-password")
+                .populate("latestMessage")
+                .sort({ updatedAt: -1 })
+                .then(async (results) => {
+                    results = await User.populate(results, {
+                        path: "latestMessage.sender",
+                        select: "fisrtName image email",
+                    });
+                    res.status(200).send(results);
                 });
-                res.status(200).send(results);
-            });
         }
     } catch (error) {
         res.status(400);
@@ -835,7 +836,7 @@ const AllMessage = async (req, res) => {
             const messages = await Message.find({ chat: req.query.chatId })
                 .populate("sender", "firstName image email")
                 .populate("chat");
-            res.json({messages:messages});
+            res.json({ messages: messages });
         } catch (error) {
             res.status(400);
             throw new Error(error.message);
@@ -844,9 +845,9 @@ const AllMessage = async (req, res) => {
 };
 
 
-const SendMessage = async(req,res)=>{
+const SendMessage = async (req, res) => {
     try {
-        if(req.user){
+        if (req.user) {
             const { content, chatId } = req.body;
 
             if (!content || !chatId) {
@@ -860,26 +861,70 @@ const SendMessage = async(req,res)=>{
                 chat: chatId,
             };
 
-     
-                var message = await Message.create(newMessage);
 
-                message = await message.populate("sender", "firstName image")
-                message = await message.populate("chat")
-                message = await User.populate(message, {
-                    path: "chat.users",
-                    select: "firstName image email",
-                });
+            var message = await Message.create(newMessage);
 
-                await Chat.findByIdAndUpdate(req.body.chatId, { latestMessage: message });
+            message = await message.populate("sender", "firstName image")
+            message = await message.populate("chat")
+            message = await User.populate(message, {
+                path: "chat.users",
+                select: "firstName image email",
+            });
 
-                res.json(message);
-            
+            await Chat.findByIdAndUpdate(req.body.chatId, { latestMessage: message });
+
+            res.json(message);
+
         }
     } catch (error) {
         console.error(error);
         res.status(500).json({ status: 'error', message: 'Internal server error' });
     }
 }
+const createOrder = async (req, res) => {
+    try {
+        if (req.user) {
+
+            let razorpay = new Razorpay(
+                {
+                    key_id: "rzp_test_UWN9YHKEBFWQUS",
+                    key_secret: "JovSRUtrFwTD16AbrEtgD0Pk"
+                })
+
+            const options = {
+                amount: req.body.amount, // Amount in paise (100 paise = 1 INR)
+                currency: 'INR',
+                receipt: 'order_receipt',
+            };
+            razorpay.orders.create(options, (err, order) => {
+                if (err) {
+                    console.error('Error creating order:', err);
+                    return res.status(500).json({ error: 'Something went wrong' });
+                }
+
+                return res.json(order);
+            });
+
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ status: 'error', message: 'Internal server error' });
+    }
+}
+
+const PremiumPurchase = async (req, res) => {
+    try {
+        if (req.user) {
+            User.findByIdAndUpdate({ _id: req.user._id }, { $set: { PremiumPurchased: true } }).then(() => {
+                res.status(200).json({ status: 'ok' });
+            })
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ status: 'error', message: 'Internal server error' });
+    }
+}
+
 module.exports = {
     userRegister,
     otpVerify,
@@ -905,5 +950,7 @@ module.exports = {
     accessChat,
     fetchChats,
     AllMessage,
-    SendMessage
+    SendMessage,
+    createOrder,
+    PremiumPurchase
 }

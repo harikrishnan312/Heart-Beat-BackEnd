@@ -73,7 +73,12 @@ const User = mongoose.Schema({
     matches:{
         type:Array,
         default:[]
+    },
+    PremiumPurchased: {
+        type: Boolean,
+        default: false
     }
+
 
 
 

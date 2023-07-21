@@ -58,5 +58,8 @@ userRoute.get('/allMessage',userAuth,userController.AllMessage);
 
 userRoute.post('/sendMessage',userAuth,userController.SendMessage)
 
+userRoute.post('/create-order',userAuth,userController.createOrder)
+
+userRoute.patch('/premiumPurchase',userAuth,userController.PremiumPurchase)
 
 module.exports = userRoute;
