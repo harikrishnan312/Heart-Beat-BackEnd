@@ -60,6 +60,8 @@ userRoute.post('/sendMessage',userAuth,userController.SendMessage)
 
 userRoute.post('/create-order',userAuth,userController.createOrder)
 
-userRoute.patch('/premiumPurchase',userAuth,userController.PremiumPurchase)
+userRoute.patch('/premiumPurchase',userAuth,userController.PremiumPurchase);
+
+userRoute.post('/deleteMessage',userAuth,userController.HandleDelete);
 
 module.exports = userRoute;

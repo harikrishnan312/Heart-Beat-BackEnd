@@ -925,6 +925,25 @@ const PremiumPurchase = async (req, res) => {
     }
 }
 
+const HandleDelete = async (req, res) => {
+    try {
+        if (req.user) {
+            const{id} =req.body
+            // console.log(id);
+           const deleted =  await Chat.deleteOne({_id:id})
+            const messageDeleted = await Message.deleteMany({chat:id});
+
+            // console.log(deleted);
+           if(messageDeleted){
+            res.status(200).json({status:'ok'})
+           }
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ status: 'error', message: 'Internal server error' });
+    }
+}
+
 module.exports = {
     userRegister,
     otpVerify,
@@ -952,5 +971,6 @@ module.exports = {
     AllMessage,
     SendMessage,
     createOrder,
-    PremiumPurchase
+    PremiumPurchase,
+    HandleDelete
 }
