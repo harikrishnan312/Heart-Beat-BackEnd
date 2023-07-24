@@ -18,6 +18,7 @@ app.use(express.static(path.join(__dirname, "public")));
 const userRoute = require('./routes/userRoute')
 app.use('/', userRoute)
 const adminRoute = require('./routes/adminRoute');
+const { log } = require('console');
 app.use('/admin', adminRoute)
 
 const server = app.listen(8000, () => {
@@ -35,6 +36,7 @@ io.on("connection", (socket) => {
   console.log("connected to socket.io");
 
   socket.on('set up', (userData) => {
+    // console.log(userData);
     socket.join(userData);
     socket.emit('connection');
   });
@@ -55,7 +57,7 @@ io.on("connection", (socket) => {
 
   socket.on('new message', (newMessageRecieved) => {
     // console.log(newMessageRecieved.content);
-    var chat = newMessageRecieved.chat;
+    let chat = newMessageRecieved.chat;
 
     if (!chat.users) return console.log('users not defined');
 
@@ -64,6 +66,11 @@ io.on("connection", (socket) => {
 
       socket.in(user._id).emit('message recieved', newMessageRecieved);
     })
+  })
+
+  socket.on("like sent",(id)=>{
+    // console.log(id);
+    socket.in(id).emit("like received")
   })
   socket.off('set up', () => {
     console.log("USER DISCONNECTED");
