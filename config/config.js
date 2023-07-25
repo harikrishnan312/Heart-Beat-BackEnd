@@ -6,7 +6,8 @@ const emailPassword = process.env.PASSWORD;
 
 const Db = () => {
     const mongoose = require('mongoose');
-    mongoose.connect(process.env.DATAURL).then(()=>{ console.log('mongo Db connected');}
+    mongoose.connect(process.env.DATAURL)
+    .then(()=>{ console.log('mongo Db connected');}
        
     );
 }
