@@ -100,6 +100,7 @@ const otpVerify = async (req, res) => {
     try {
         const { otp, id } = req.body;
         const user = await User.findOne({ _id: id });
+        console.log(user);
         if (user) {
             if (user.token == otp) {
                 await User.findByIdAndUpdate({ _id: id }, { $set: { isVerified: true, token: '' } });
