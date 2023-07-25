@@ -64,4 +64,6 @@ userRoute.patch('/premiumPurchase',userAuth,userController.PremiumPurchase);
 
 userRoute.post('/deleteMessage',userAuth,userController.HandleDelete);
 
+userRoute.post('/report',userAuth,userController.HandleReport);
+
 module.exports = userRoute;

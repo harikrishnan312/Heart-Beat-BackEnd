@@ -9,6 +9,8 @@ const User = require('../model/userModel')
 
 const NewsFeed = require('../model/newsFeedModel')
 
+const ReportedUser = require('../model/reportedUsers')
+
 
 const securePassword = require('../middleware/bcrypt')
 
@@ -77,7 +79,7 @@ const AdminHome = async (req, res) => {
             const verified = req.query.verified;
             const users = await User.find({ isVerified: verified })
             if (users) {
-                 const updatedUsers = users.map((user) => {
+                const updatedUsers = users.map((user) => {
                     return {
                         ...user,
                         age: calculateAge(user.age),
@@ -173,11 +175,27 @@ const DeletePost = async (req, res) => {
     }
 }
 
+const HandleReport = async (req, res) => {
+    try {
+        // console.log("hy")
+        if (req.admin) {
+            ReportedUser.find()
+                .populate("userId")
+                .then((response) => {
+                    res.status(200).json({ user: response })
+                })
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ status: 'error', message: 'Internal server error' });
+    }
+}
 module.exports = {
     RegisterAdmin,
     VerifyAdmin,
     AdminHome,
     BlockUser,
     GetPosts,
-    DeletePost
+    DeletePost,
+    HandleReport
 }

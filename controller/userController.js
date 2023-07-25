@@ -17,6 +17,8 @@ const Chat = require('../model/chatModel');
 
 const Message = require('../model/messageModel')
 
+const ReportedUser = require('../model/reportedUsers')
+
 const securePassword = require('../middleware/bcrypt')
 
 
@@ -928,15 +930,35 @@ const PremiumPurchase = async (req, res) => {
 const HandleDelete = async (req, res) => {
     try {
         if (req.user) {
-            const{id} =req.body
+            const { id } = req.body
             // console.log(id);
-           const deleted =  await Chat.deleteOne({_id:id})
-            const messageDeleted = await Message.deleteMany({chat:id});
+            const deleted = await Chat.deleteOne({ _id: id })
+            const messageDeleted = await Message.deleteMany({ chat: id });
 
             // console.log(deleted);
-           if(messageDeleted){
-            res.status(200).json({status:'ok'})
-           }
+            if (messageDeleted) {
+                res.status(200).json({ status: 'ok' })
+            }
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ status: 'error', message: 'Internal server error' });
+    }
+}
+
+const HandleReport = async (req, res) => {
+    try {
+        if (req.user) {
+            const User = await ReportedUser.updateOne({ userId: req.body.id }, { $inc: { count: 1 } })
+            // console.log(User);
+            if (User.modifiedCount == 0) {
+                const user = new ReportedUser({
+                    userId: req.body.id
+                })
+                await user.save();
+            }
+            res.status(200).json({ status: "ok" })
+
         }
     } catch (error) {
         console.error(error);
@@ -972,5 +994,6 @@ module.exports = {
     SendMessage,
     createOrder,
     PremiumPurchase,
-    HandleDelete
+    HandleDelete,
+    HandleReport
 }
