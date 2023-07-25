@@ -82,7 +82,7 @@ const userRegister = async (req, res) => {
 
             const userData = await user.save();
             if (userData) {
-                // sendVerifyMail(req.body.email);
+                sendVerifyMail(req.body.email);
                 res.json({ status: 'ok', user_id: userData._id })
             }
         } else {
@@ -123,7 +123,7 @@ const ResendOTP = async (req, res) => {
         const id = req.body.id
         const user = await User.findByIdAndUpdate({ _id: id }, { $set: { token: otp } })
         if (user) {
-            // sendVerifyMail(user.email);
+            sendVerifyMail(user.email);
             res.json({ status: 'ok' })
         } else {
             res.json({ status: 'error' })
