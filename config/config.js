@@ -7,10 +7,9 @@ const emailPassword = process.env.PASSWORD;
 const Db = () => {
     const mongoose = require('mongoose');
     mongoose.set('strictQuery', false);
-    
+
     mongoose.connect(process.env.DATAURL)
-    .then(()=>{ console.log('mongo Db connected');}
-       
+    .then(()=>{ console.log('mongo Db connected');}   
     );
 }
 
