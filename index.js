@@ -26,7 +26,10 @@ const server = app.listen(3000, () => {
 });
 
 const io = require('socket.io')(server, {
-  cors:true
+  pingTimeout: 60000,
+  cors: {
+    origin: "https://heartbeatz.netlify.app"
+  }
 })
 
 io.on("connection", (socket) => {
