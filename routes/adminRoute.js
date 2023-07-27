@@ -17,6 +17,8 @@ adminRoute.get('/newsFeed',adminAuth,adminController.GetPosts);
 
 adminRoute.put('/newsFeed',adminAuth,adminController.DeletePost);
 
-adminRoute.get('/report',adminAuth,adminController.HandleReport)
+adminRoute.get('/report',adminAuth,adminController.HandleReport);
+
+adminRoute.get('/dashboard',adminAuth,adminController.HandleDashboard)
 
 module.exports = adminRoute;

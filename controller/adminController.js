@@ -190,6 +190,17 @@ const HandleReport = async (req, res) => {
         res.status(500).json({ status: 'error', message: 'Internal server error' });
     }
 }
+
+const HandleDashboard = async(req,res)=>{
+    try {
+        if (req.admin){
+        await User.find({PremiumPurchased:true}).then((response)=>{res.json({status:'ok',users:response})})
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ status: 'error', message: 'Internal server error' });
+    }
+}
 module.exports = {
     RegisterAdmin,
     VerifyAdmin,
@@ -197,5 +208,6 @@ module.exports = {
     BlockUser,
     GetPosts,
     DeletePost,
-    HandleReport
+    HandleReport,
+    HandleDashboard
 }
