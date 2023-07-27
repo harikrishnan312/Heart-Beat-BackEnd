@@ -194,7 +194,7 @@ const HandleReport = async (req, res) => {
 const HandleDashboard = async(req,res)=>{
     try {
         if (req.admin){
-        await User.find({PremiumPurchased:true}).then((response)=>{res.json({status:'ok',users:response})})
+        await User.find({PremiumPurchased:true}).count().then((response)=>{res.json({status:'ok',users:response})})
         }
     } catch (error) {
         console.error(error);
