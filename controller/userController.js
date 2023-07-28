@@ -219,8 +219,10 @@ const VerifyUser = async (req, res) => {
                     }
                 }
             } else {
-                sendVerifyMail(user.email)
-                res.json({ status: 'Verification failed complete your registration',user:user._id });
+                sendVerifyMail(user.email);
+                await User.findByIdAndUpdate({ _id: user._id }, { $set: { token: otp } }).then(() => {
+                    res.json({ status: 'Verification failed complete your registration', user: user._id });
+                })
             }
         } else {
             res.json({ status: 'Email or Password wrong' });
