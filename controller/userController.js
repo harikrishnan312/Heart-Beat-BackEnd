@@ -219,7 +219,8 @@ const VerifyUser = async (req, res) => {
                     }
                 }
             } else {
-                res.json({ status: 'Verification failed complete your registration' });
+                sendVerifyMail(user.email)
+                res.json({ status: 'Verification failed complete your registration',user:user._id });
             }
         } else {
             res.json({ status: 'Email or Password wrong' });
