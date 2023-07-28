@@ -205,15 +205,20 @@ const VerifyUser = async (req, res) => {
                 } else {
 
                     if (passwordMatch) {
-                        const accessToken = jwt.sign({
-                            id: user._id
-                        }, process.env.SECRETKEY, { expiresIn: '7h' });
+                        if(user.firstName){
+                            const accessToken = jwt.sign({
+                                id: user._id
+                            }, process.env.SECRETKEY, { expiresIn: '7h' });
 
-                        const refreshToken = jwt.sign({
-                            id: user._id
-                        }, process.env.REFRESHSECRETKEY)
+                            const refreshToken = jwt.sign({
+                                id: user._id
+                            }, process.env.REFRESHSECRETKEY)
 
-                        res.json({ status: 'ok', user: true, accessToken, refreshToken })
+                            res.json({ status: 'ok', user: true, accessToken, refreshToken })
+                        }else{
+                            res.json({ status: 'addProfile', user:user._id})
+                        }
+                      
                     } else {
                         res.json({ status: 'Email or Password wrong' });
                     }
