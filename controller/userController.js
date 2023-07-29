@@ -87,7 +87,7 @@ const userRegister = async (req, res) => {
             }
         } else {
 
-            res.json({ status: 'Email already used' })
+            res.json({ status: 'Email already used, please login.' })
         }
 
     } catch (error) {
