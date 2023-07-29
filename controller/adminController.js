@@ -191,10 +191,15 @@ const HandleReport = async (req, res) => {
     }
 }
 
-const HandleDashboard = async(req,res)=>{
+const HandleDashboard = async (req, res) => {
     try {
-        if (req.admin){
-        await User.find({PremiumPurchased:true}).count().then((response)=>{res.json({status:'ok',users:response})})
+        if (req.admin) {
+            let users, premiumUsers;
+            await User.find({ PremiumPurchased: true }).count().then((response) => { premiumUsers = response })
+            await User.find().count().then((response) => {
+                users = response;
+                res.json({ status: 'ok', users,premiumUsers })
+            })
         }
     } catch (error) {
         console.error(error);
