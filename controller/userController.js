@@ -143,7 +143,7 @@ const ProfileAdd = async (req, res) => {
 
 
         //location setting
-        const geocodeUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(location)}`;
+        const geocodeUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${location}`;
 
         const response = await axios.get(geocodeUrl);
 
@@ -604,7 +604,7 @@ const SuggestLoaction = async (req, res) => {
     try {
         const { query } = req.query;
 
-        const suggestUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`;
+        const suggestUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${query}`;
 
         const response = await axios.get(suggestUrl);
 
