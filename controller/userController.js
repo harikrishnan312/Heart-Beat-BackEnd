@@ -143,13 +143,13 @@ const ProfileAdd = async (req, res) => {
 
 
         //location setting
-        const geocodeUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${location}`;
+        // const geocodeUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(location)}`;
 
-        const response = await axios.get(geocodeUrl);
+        // const response = await axios.get(geocodeUrl);
 
-        if (response.data && response.data.length > 0) {
+        // if (response.data && response.data.length > 0) {
 
-            const { display_name, lat, lon } = response.data[0];
+            // const { display_name, lat, lon } = response.data[0];
 
             const updateProfile = async (imageUrl) => {
                 const update = await User.findByIdAndUpdate({ _id: req.user._id }, {
@@ -161,10 +161,10 @@ const ProfileAdd = async (req, res) => {
                         about: about,
                         gender: gender,
                         image: imageUrl,
-                        location: {
-                            placeName: display_name,
-                            coordinates: [lat, lon]
-                        }
+                        // location: {
+                        //     placeName: display_name,
+                        //     coordinates: [lat, lon]
+                        // }
                     }
                 });
 
@@ -189,7 +189,7 @@ const ProfileAdd = async (req, res) => {
 
                 streamifier.createReadStream(req.file.buffer).pipe(uploadStream);
             }
-        }
+        // }
     } catch (error) {
         console.log(error.message);
     }
@@ -604,7 +604,7 @@ const SuggestLoaction = async (req, res) => {
     try {
         const { query } = req.query;
 
-        const suggestUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${query}`;
+        const suggestUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`;
 
         const response = await axios.get(suggestUrl);
 
