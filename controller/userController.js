@@ -7,6 +7,8 @@ const axios = require('axios')
 const mongoose = require('mongoose');
 const moment = require('moment')
 const Razorpay = require('razorpay')
+const cloudinary = require('../config/cloudinary')
+const streamifier = require('streamifier')
 
 
 const User = require('../model/userModel');
@@ -137,6 +139,8 @@ const ProfileAdd = async (req, res) => {
     try {
         const { id, firstName, lastName, location, age, gender, mobile, about } = req.body;
         const image = req.file
+        let imageUrl = ''
+
 
         //location setting
         const geocodeUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(location)}`;
@@ -147,25 +151,43 @@ const ProfileAdd = async (req, res) => {
 
             const { display_name, lat, lon } = response.data[0];
 
-            const user = await User.findByIdAndUpdate({ _id: id }, {
-                $set: {
-                    firstName: firstName,
-                    lastName: lastName,
-                    age: age,
-                    mobile: mobile,
-                    about: about,
-                    gender: gender,
-                    image: image.filename,
-                    location: {
-                        placeName: display_name,
-                        coordinates: [lat, lon]
+            const updateProfile = async (imageUrl) => {
+                const update = await User.findByIdAndUpdate({ _id: req.user._id }, {
+                    $set: {
+                        firstName: firstName,
+                        lastName: lastName,
+                        age: age,
+                        mobile: mobile,
+                        about: about,
+                        gender: gender,
+                        image: imageUrl,
+                        location: {
+                            placeName: display_name,
+                            coordinates: [lat, lon]
+                        }
                     }
+                });
+
+                if (update) {
+                    return true;
                 }
-            })
-            if (user) {
-                res.json({ status: 'ok' });
-            } else {
-                res.json({ status: 'error' })
+            }
+
+            if (image) {
+                const uploadStream = cloudinary.uploader.upload_stream(
+                    { folder: 'uploads' },
+                    (error, result) => {
+                        if (error) {
+                            console.error('Upload failed:', error);
+                            return res.status(500).json({ message: 'Upload failed', error: error });
+                        }
+                        console.log('Upload successful:', result);
+                        imageUrl = result.url;
+                        updateProfile(imageUrl).then(res.json({ status: 'ok' }));
+                    }
+                );
+
+                streamifier.createReadStream(req.file.buffer).pipe(uploadStream);
             }
         }
     } catch (error) {
@@ -205,7 +227,7 @@ const VerifyUser = async (req, res) => {
                 } else {
 
                     if (passwordMatch) {
-                        if(user.firstName){
+                        if (user.firstName) {
                             const accessToken = jwt.sign({
                                 id: user._id
                             }, process.env.SECRETKEY, { expiresIn: '7h' });
@@ -215,10 +237,10 @@ const VerifyUser = async (req, res) => {
                             }, process.env.REFRESHSECRETKEY)
 
                             res.json({ status: 'ok', user: true, accessToken, refreshToken })
-                        }else{
-                            res.json({ status: 'addProfile', user:user._id})
+                        } else {
+                            res.json({ status: 'addProfile', user: user._id })
                         }
-                      
+
                     } else {
                         res.json({ status: 'Email or Password wrong' });
                     }
@@ -307,7 +329,9 @@ const EditProfile = async (req, res) => {
     try {
         if (req.user) {
             const image = req.file;
+            let imageUrl = ''
             const { firstName, lastName, about, age, mobile, gender, interests, location } = req.body;
+
 
             //location setting
             const geocodeUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(location)}`;
@@ -318,10 +342,10 @@ const EditProfile = async (req, res) => {
 
                 const { display_name, lat, lon } = response.data[0];
 
-                if (image) {
+                const updateProfile = async (imageUrl) => {
                     const update = await User.findByIdAndUpdate({ _id: req.user._id }, {
                         $set: {
-                            firstName, lastName, about, age, mobile, gender, interests, image: image.filename,
+                            firstName, lastName, about, age, mobile, gender, interests, image: imageUrl,
                             location: {
                                 placeName: display_name,
                                 coordinates: [lat, lon]
@@ -329,8 +353,26 @@ const EditProfile = async (req, res) => {
                         }
                     });
                     if (update) {
-                        res.json({ status: 'ok' })
+                        return true;
                     }
+                }
+
+                if (image) {
+                    const uploadStream = cloudinary.uploader.upload_stream(
+                        { folder: 'uploads' },
+                        (error, result) => {
+                            if (error) {
+                                console.error('Upload failed:', error);
+                                return res.status(500).json({ message: 'Upload failed', error: error });
+                            }
+                            console.log('Upload successful:', result.url);
+                            imageUrl = result.url;
+                            updateProfile(imageUrl).then(res.json({ status: 'ok' }));
+                        }
+                    );
+
+                    streamifier.createReadStream(req.file.buffer).pipe(uploadStream);
+
                 } else {
                     const update = await User.findByIdAndUpdate({ _id: req.user._id }, {
                         $set: {
@@ -396,8 +438,23 @@ const MultipleImages = async (req, res) => {
 const EditImage = async (req, res) => {
     try {
         const image = req.file;
-        console.log(image);
-        res.json({ status: 'ok' })
+        if (image) {
+            const uploadStream = cloudinary.uploader.upload_stream(
+                { folder: 'uploads' },
+                (error, result) => {
+                    if (error) {
+                        console.error('Upload failed:', error);
+                        return res.status(500).json({ message: 'Upload failed', error: error });
+                    }
+                    console.log('Upload successful:', result);
+                    res.status(200).json({ message: 'Upload successful', url: result.secure_url });
+                }
+            );
+
+            streamifier.createReadStream(req.file.buffer).pipe(uploadStream);
+        } else {
+            return res.status(500).json({ message: 'Upload failed', error: error });
+        }
     } catch (error) {
         console.error(error);
         res.status(500).json({ status: 'error', message: 'Internal server error' });
