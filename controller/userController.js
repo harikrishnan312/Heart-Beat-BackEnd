@@ -161,6 +161,7 @@ const ProfileAdd = async (req, res) => {
                         about: about,
                         gender: gender,
                         image: imageUrl,
+                        
                         // location: {
                         //     placeName: display_name,
                         //     coordinates: [lat, lon]
