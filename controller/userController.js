@@ -152,7 +152,7 @@ const ProfileAdd = async (req, res) => {
             // const { display_name, lat, lon } = response.data[0];
 
             const updateProfile = async (imageUrl) => {
-                const update = await User.findByIdAndUpdate({ _id: req.user._id }, {
+                const update = await User.findByIdAndUpdate({ _id:id }, {
                     $set: {
                         firstName: firstName,
                         lastName: lastName,
